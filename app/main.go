@@ -17,7 +17,7 @@ import (
 //go:embed static/*
 var staticFiles embed.FS
 
-var sentryDSN = "" // Set via -ldflags or SENTRY_DSN env var (see AGENTS.md)
+var sentryDSN = "" // set via -ldflags or SENTRY_DSN (see AGENTS.md)
 
 func main() {
 	if dsn := sentryDSN; dsn != "" {
@@ -119,7 +119,7 @@ func main() {
 	})
 
 	log.Println("Server starting on :8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe(":8080", mux))
 }
 
 func jsonError(w http.ResponseWriter, msg string, code int) {

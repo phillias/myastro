@@ -7,7 +7,7 @@ COPY frontend/ .
 RUN npm run build
 
 # Stage 2: Build Backend
-FROM golang:1.23-bookworm AS backend-build
+FROM golang:1.24-bookworm AS backend-build
 RUN apt-get update && apt-get install -y build-essential libswe-dev
 WORKDIR /app
 COPY app/go.* ./
