@@ -1,0 +1,30 @@
+# Dependencies
+frontend/node_modules/
+frontend/.pnp
+frontend/.pnp.js
+
+# Frontend build output
+frontend/dist/
+app/static/
+
+# Go build
+app/astrology-app
+app/astrology-app.exe
+app/*.test
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+.env.local
+
+# Logs
+*.log

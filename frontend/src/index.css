@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import 'leaflet/dist/leaflet.css';
+@import 'leaflet-geosearch/dist/geosearch.css';
+
+/* Force the map container to take height */
+.leaflet-container {
+    height: 400px !important;
+    width: 100% !important;
+    display: block !important;
+}
+
+body {
+  @apply bg-gray-50 text-gray-900;
+}
