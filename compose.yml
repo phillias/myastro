@@ -1,0 +1,12 @@
+services:
+  myastro:
+    image: astrology-app:latest
+    container_name: myastro
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    # Optional: labels for your GoDoxy setup
+    labels:
+      proxy.myastro.port: 8080
+      #proxy.myastro.host: astrology-app.phillias.us
+      proxy.myastro.alias: astrology-app
