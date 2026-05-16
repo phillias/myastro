@@ -1,24 +1,19 @@
 # Stage 1: Build Frontend
 FROM node:20-bookworm AS frontend-build
 WORKDIR /app
-COPY myastrology/frontend/package*.json ./
+COPY frontend/package*.json ./
 RUN npm install
-COPY myastrology/frontend/ .
+COPY frontend/ .
 RUN npm run build
 
 # Stage 2: Build Backend
 FROM golang:1.23-bookworm AS backend-build
 RUN apt-get update && apt-get install -y build-essential libswe-dev
 WORKDIR /app
-COPY myastrology/app/go.* ./
+COPY app/go.* ./
 RUN go mod download
-COPY myastrology/app/ .
-# Embed frontend build
+COPY app/ .
 COPY --from=frontend-build /app/dist ./static
-
-# Set CGO flags to point to headers and libs
-# -I /usr/include finds the .h files
-# -L /usr/lib/x86_64-linux-gnu links the binary .so files and math library
 ENV CGO_CFLAGS="-I/usr/include"
 ENV CGO_LDFLAGS="-L/usr/lib/x86_64-linux-gnu -lswe -lm"
 RUN CGO_ENABLED=1 go build -o astrology-app .
@@ -30,4 +25,6 @@ WORKDIR /root/
 COPY --from=backend-build /app/astrology-app .
 COPY --from=backend-build /app/static ./static
 EXPOSE 8080
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:8080/api/health || exit 1
 CMD ["./astrology-app"]
