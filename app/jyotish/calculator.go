@@ -10,6 +10,8 @@ type JyotishData struct {
 	LaganaDeg     float64    `json:"lagana_degree"`
 	Remedy        Remedy     `json:"remedy"`
 	Panchanga     Panchangam `json:"panchanga"`
+	Chart         *Chart       `json:"chart,omitempty"`
+	Dasha         *DashaResult `json:"dasha,omitempty"`
 }
 
 // SignNames in Vedic (sidereal) order.

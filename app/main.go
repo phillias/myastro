@@ -98,17 +98,33 @@ func main() {
 		loc := jyotish.GetTimeZone(lat, lon)
 		birthLocal := birthTime.In(loc)
 
-		data := jyotish.JyotishData{}
+		// Full chart calculation (all planets, lagna, houses) via Swiss Ephemeris
+		chart := jyotish.CalculateChart(birthLocal, lat, lon)
 
-		sunLon, moonLon := jyotish.GetSunMoonLongitudes(birthLocal)
-		log.Printf("Ephemeris for %v: SunLon=%.2f, MoonLon=%.2f", birthLocal, sunLon, moonLon)
+		var sunLon, moonLon float64
+		for _, p := range chart.Planets {
+			switch p.Name {
+			case "Sun":
+				sunLon = p.Longitude
+			case "Moon":
+				moonLon = p.Longitude
+			}
+		}
+		log.Printf("Chart for %v: Lagna=%.2f° %s, Sun=%.2f°, Moon=%.2f°",
+			birthLocal, chart.Lagna.Degree, chart.Lagna.Sign, sunLon, moonLon)
 
-		data.LaganaDeg = jyotish.GetLagna(birthLocal, lat, lon)
-		data.Sign = jyotish.RashiFromLongitude(data.LaganaDeg)
-		data.Nakshatra = jyotish.NakshatraFromLongitude(moonLon)
-		data.NakshatraPada = jyotish.NakshatraPada(moonLon)
-		data.Panchanga = jyotish.CalculatePanchangam(sunLon, moonLon)
-		data.Remedy = jyotish.GetRemedy(data.Sign)
+		dashaResult := jyotish.CalculateDashas(moonLon, birthLocal)
+
+		data := jyotish.JyotishData{
+			Sign:          chart.Lagna.Sign,
+			Nakshatra:     jyotish.NakshatraFromLongitude(moonLon),
+			NakshatraPada: jyotish.NakshatraPada(moonLon),
+			LaganaDeg:     chart.Lagna.Longitude,
+			Panchanga:     jyotish.CalculatePanchangam(sunLon, moonLon),
+			Remedy:        jyotish.GetRemedy(chart.Lagna.Sign),
+			Chart:         &chart,
+			Dasha:         &dashaResult,
+		}
 
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("X-Cache", "MISS")
@@ -182,6 +198,60 @@ func main() {
 		chartB := jyotish.CalculateChart(birthLocal2, la2, lo2)
 
 		result := jyotish.CalculateSynastry(chartA, chartB)
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(result)
+	})
+
+	mux.HandleFunc("/api/dasha", func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			if err := recover(); err != nil {
+				sentry.CurrentHub().Recover(err)
+				http.Error(w, `{"error":"internal server error"}`, http.StatusInternalServerError)
+			}
+		}()
+
+		latParam := r.URL.Query().Get("lat")
+		lonParam := r.URL.Query().Get("lon")
+		date := r.URL.Query().Get("date")
+		timeStr := r.URL.Query().Get("time")
+
+		if latParam == "" || lonParam == "" || date == "" || timeStr == "" {
+			jsonError(w, "lat, lon, date, and time are required", http.StatusBadRequest)
+			return
+		}
+
+		lat, err := strconv.ParseFloat(latParam, 64)
+		if err != nil || lat < -90 || lat > 90 {
+			jsonError(w, "lat must be a float between -90 and 90", http.StatusBadRequest)
+			return
+		}
+		lon, err := strconv.ParseFloat(lonParam, 64)
+		if err != nil || lon < -180 || lon > 180 {
+			jsonError(w, "lon must be a float between -180 and 180", http.StatusBadRequest)
+			return
+		}
+
+		birthTime, err := time.Parse("2006-01-02 15:04", fmt.Sprintf("%s %s", date, timeStr))
+		if err != nil {
+			jsonError(w, "date must be YYYY-MM-DD, time must be HH:MM", http.StatusBadRequest)
+			return
+		}
+
+		loc := jyotish.GetTimeZone(lat, lon)
+		birthLocal := birthTime.In(loc)
+
+		chart := jyotish.CalculateChart(birthLocal, lat, lon)
+
+		var moonLon float64
+		for _, p := range chart.Planets {
+			if p.Name == "Moon" {
+				moonLon = p.Longitude
+				break
+			}
+		}
+
+		result := jyotish.CalculateDashas(moonLon, birthLocal)
 
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(result)
