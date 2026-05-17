@@ -4,10 +4,13 @@
 - **Frontend**: React/Vite app in `/frontend`
 - **Backend**: Go API server in `/app` serving embedded frontend
 - **API Endpoints**:
-  - `/api/calculate` (GET) — individual birth chart
+  - `/api/calculate` (GET) — individual birth chart (includes planets + dashas)
   - `/api/compatibility` (GET) — synastry between two charts
+  - `/api/dasha` (GET) — Vimshottari Dasha periods only
 - **Planet Computation**: `jyotish/planets.go` — all 9 Vedic planets (Sun–Saturn + Rahu/Ketu) via Swiss Ephemeris
 - **Synastry Engine**: `jyotish/synastry.go` — cross-chart aspects, Vedic graha drishti, house overlays
+- **Dasha Engine**: `jyotish/dasha.go` — Vimshottari Dasha timeline from Moon nakshatra
+- **Frontend**: Single-page React app with mode toggle: Single Chart (Natal/Panchanga/Planets/Dashas) | Compatibility (Aspects/Drishti/Overlays/Charts)
 - **Static Files**: Frontend build output embedded in Go binary via `go:embed`
 
 ## Development Commands
@@ -66,7 +69,9 @@ Parameters:
 - `date`: YYYY-MM-DD
 - `time`: HH:MM (24-hour)
 
-Returns: `{ sign, nakshatra, nakshatra_pada, lagana_degree, remedy, panchanga }`
+Returns: `{ sign, nakshatra, nakshatra_pada, lagana_degree, remedy, panchanga, chart, dasha }`
+- `chart`: full planet positions (Lagna + 9 planets with sign, degree, house, nakshatra, pada, retrograde)
+- `dasha`: Vimshottari Dasha timeline (9 periods with planet, start/end dates, years)
 
 ### API: Synastry `GET /api/compatibility`
 Parameters (two persons):
@@ -79,11 +84,18 @@ Each chart contains Lagna + 9 planets with sign, degree, nakshatra, pada, house,
 Aspects: conjunction/sextile/square/trine/opposition with orb values.
 Vedic drishti: Jupiter(5/7/9), Saturn(3/7/10), Mars(4/7/8) applied cross-chart.
 
+### API: Dasha `GET /api/dasha`
+Parameters: same as `/api/calculate` (lat, lon, date, time)
+Returns: `{ birth_time, nakshatra, nakshatra_index, pada, starting_lord, periods[] }`
+- Vimshottari Dasha: 9 sequential periods based on Moon's nakshatra at birth
+- First period is partial based on Moon's position within its nakshatra
+
 ### Testing
 ```bash
 # Run all backend tests
 cd app && go test ./jyotish/ -v -count=1
 ```
 Tests package: calculator logic, panchanga edge cases, house position math,
-angular distances, aspect detection with synthetic data, full chart structure validation.
-23 tests across 6 test files.
+angular distances, aspect detection with synthetic data, full chart structure validation,
+Vimshottari Dasha calculations (nakshatra mapping, pada, partial periods, sequential dates).
+30 tests across 7 test files.
