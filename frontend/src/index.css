@@ -1,15 +1,59 @@
+@import 'leaflet/dist/leaflet.css';
+@import 'leaflet-geosearch/dist/geosearch.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@import 'leaflet/dist/leaflet.css';
-@import 'leaflet-geosearch/dist/geosearch.css';
-
-/* Force the map container to take height */
 .leaflet-container {
-    height: 400px !important;
+    height: 100% !important;
     width: 100% !important;
     display: block !important;
+}
+
+/* leaflet-geosearch dark theme overrides (need !important to beat library CSS order) */
+.leaflet-control-geosearch form {
+  background: #1e293b !important;
+}
+
+.leaflet-control-geosearch form input {
+  color: #f1f5f9 !important;
+  background: transparent !important;
+}
+
+.leaflet-control-geosearch form input::placeholder {
+  color: #64748b !important;
+}
+
+.leaflet-control-geosearch .results {
+  background: #1e293b !important;
+  border-color: rgba(255,255,255,0.1) !important;
+}
+
+.leaflet-control-geosearch .results > * {
+  color: #f1f5f9 !important;
+}
+
+.leaflet-control-geosearch .results > .active,
+.leaflet-control-geosearch .results > :hover {
+  background-color: #334155 !important;
+  border-color: #475569 !important;
+}
+
+.leaflet-control-geosearch button.reset {
+  color: #94a3b8 !important;
+  background: #1e293b !important;
+}
+
+.leaflet-control-geosearch button.reset:hover {
+  background: #334155 !important;
+  color: #f1f5f9 !important;
+}
+
+/* date/time input dark color-scheme (makes native picker icons visible) */
+input[type="date"],
+input[type="time"] {
+  color-scheme: dark;
 }
 
 body {
