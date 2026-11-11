@@ -99,3 +99,8 @@ Tests package: calculator logic, panchanga edge cases, house position math,
 angular distances, aspect detection with synthetic data, full chart structure validation,
 Vimshottari Dasha calculations (nakshatra mapping, pada, partial periods, sequential dates).
 30 tests across 7 test files.
+## Git commit identity
+
+Committing agents set `GIT_AUTHOR_NAME`/`GIT_COMMITTER_NAME` to `<model>@<hostname -s>` at commit time.
+
+## Secrets
